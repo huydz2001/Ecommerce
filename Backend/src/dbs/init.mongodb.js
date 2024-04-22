@@ -3,7 +3,6 @@
 const mongoose = require('mongoose')
 const { db: { host, port, name } } = require('../configs/config.mongodb')
 const connectString = `mongodb://${host}:${port}/${name}`
-const { countConnect } = require('../helpers/check.connect')
 class Database {
     constructor() {
         this.connect()
@@ -16,7 +15,7 @@ class Database {
             mongoose.set('debug', true)
             mongoose.set('debug', { color: true })
         }
-        console.log(connectString)
+
         mongoose.connect(connectString).then(_ => {
             console.log('Connected Mongodb Success')
             // countConnect()
