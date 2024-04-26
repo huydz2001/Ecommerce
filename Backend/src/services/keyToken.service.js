@@ -21,7 +21,7 @@ class KeyTokenService {
     }
 
     static findByUserId = async (userId) => {
-        return await keytokenModel.findOne({ user:  new mongoose.Types.ObjectId(userId) }).lean()
+        return await keytokenModel.findOne({ user: new mongoose.Types.ObjectId(userId) }).lean()
     }
 
     static removeKey = async (id) => {
@@ -30,6 +30,20 @@ class KeyTokenService {
         })
         return result
     }
+
+    static findByRefreshTokenUsed = async (refreshToken) => {
+        return await keytokenModel.findOne({ refreshTokensUsed: refreshToken }).lean()
+    }
+
+    static findByRefreshToken = async (refreshToken) => {
+        return await keytokenModel.findOne({ refreshToken })
+    }
+
+    static deleteKeyById = async (userId) => {
+        return await keytokenModel.deleteOne({ user: new mongoose.Types.ObjectId(userId) })
+    }
+
+
 
 }
 

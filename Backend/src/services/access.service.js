@@ -1,7 +1,7 @@
 'use strict'
 
-const { createTokenPair } = require("../auth/authUtils")
-const { BadRequestError, AuthFailureError } = require("../core/error.response")
+const { createTokenPair, vertifyJWT } = require("../auth/authUtils")
+const { BadRequestError, AuthFailureError, ForbiddenError } = require("../core/error.response")
 const shopModel = require("../models/shop.model")
 const { getInfoData } = require("../utils")
 const KeyTokenService = require("./keyToken.service")
@@ -18,6 +18,47 @@ const RoleShop = {
 }
 
 class AccessService {
+    static handlerRefreshToken = async (refreshToken) => {
+        const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken)
+        // check refreshtoken used 
+        if (foundToken) {
+            const { userId, email } = await vertifyJWT(refreshToken, foundToken.privateKey)
+            await KeyTokenService.deleteKeyById(userId)
+            throw new ForbiddenError('Something wrong happend !! Pls relogin')
+        }
+
+        const holderToken = await KeyTokenService.findByRefreshToken(refreshToken)
+        if (!holderToken) {
+            throw new AuthFailureError('Shop not registed')
+        }
+
+        // vertify token
+        const { userId, email } = await vertifyJWT(refreshToken, holderToken.privateKey)
+        const foundShop = await findByEmail({ email })
+        if (!foundShop) {
+            throw new AuthFailureError('Shop not registed')
+        }
+
+        // create new token
+        const tokens = await createTokenPair({ userId, email }, holderToken.publicKey, holderToken.privateKey)
+
+        // update token
+        await holderToken.updateOne({
+            $set: {
+                refreshToken: tokens.refreshToken
+            },
+            $addToSet: {
+                refreshTokensUsed: refreshToken
+            }
+        })
+
+        return {
+            user: { userId, email },
+            tokens
+        }
+    }
+
+
 
     static login = async ({ email, password, refreshToken = null }) => {
         const foundShop = await findByEmail({ email })
@@ -87,11 +128,7 @@ class AccessService {
             }
         }
         catch (error) {
-            return {
-                code: 'xxx',
-                message: error.message,
-                status: 'error'
-            }
+            throw new BadRequestError(error.message)
         }
     }
 
