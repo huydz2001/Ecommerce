@@ -43,36 +43,41 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
 
 const authencation = asyncHandler(async (req, res, next) => {
     const userId = req.headers[HEADER.CLIENT_ID]
-    if(!userId){
+    if (!userId) {
         throw new AuthFailureError('Invalid request')
     }
 
     const keyStore = await findByUserId(userId)
-    if(!keyStore){
+    if (!keyStore) {
         throw new NotFoundError('Not found keyStore')
     }
 
     const accessToken = req.headers[HEADER.AUTHORIZATION]
-    if(!accessToken){
+    if (!accessToken) {
         throw new AuthFailureError('Invalid request')
     }
 
-    try{
+    try {
         const decodeUser = JWT.verify(accessToken, keyStore.publicKey)
-        if(userId != decodeUser.userId){
+        if (userId != decodeUser.userId) {
             throw new AuthFailureError('Invalid userId')
         }
         req.keyStore = keyStore
         return next()
     }
-    catch(error){
+    catch (error) {
         throw error
     }
 
 })
 
+const vertifyJWT = async (token, keySecret) => {
+    return await JWT.verify(token, keySecret)
+}
+
 
 module.exports = {
     createTokenPair,
-    authencation
+    authencation,
+    vertifyJWT
 }
