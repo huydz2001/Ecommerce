@@ -18,29 +18,26 @@ const RoleShop = {
 }
 
 class AccessService {
-    static handlerRefreshToken = async (refreshToken) => {
-        const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken)
-        // check refreshtoken used 
-        if (foundToken) {
-            const { userId, email } = await vertifyJWT(refreshToken, foundToken.privateKey)
+    static handlerRefreshToken = async ({ keyStore, user, refreshToken }) => {
+        const {userId, email} = user
+
+        if(keyStore.refreshTokensUsed.includes(refreshToken)){
             await KeyTokenService.deleteKeyById(userId)
             throw new ForbiddenError('Something wrong happend !! Pls relogin')
         }
 
-        const holderToken = await KeyTokenService.findByRefreshToken(refreshToken)
-        if (!holderToken) {
+        if(keyStore.refreshToken !== refreshToken){
             throw new AuthFailureError('Shop not registed')
         }
 
         // vertify token
-        const { userId, email } = await vertifyJWT(refreshToken, holderToken.privateKey)
         const foundShop = await findByEmail({ email })
         if (!foundShop) {
             throw new AuthFailureError('Shop not registed')
         }
 
         // create new token
-        const tokens = await createTokenPair({ userId, email }, holderToken.publicKey, holderToken.privateKey)
+        const tokens = await createTokenPair({ userId, email }, keyStore.publicKey, holderToken.privateKey)
 
         // update token
         await holderToken.updateOne({
@@ -53,7 +50,7 @@ class AccessService {
         })
 
         return {
-            user: { userId, email },
+            user,
             tokens
         }
     }
