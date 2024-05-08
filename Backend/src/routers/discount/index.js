@@ -12,9 +12,6 @@ router.post('/amount', asyncHandler(discountController.getALLDiscountAmount))
 router.get('/list_product_code', asyncHandler(discountController.getALLDiscountCodesWithProducts))
 
 
-
-
-
 // authencation
 router.use(authencation)
 
