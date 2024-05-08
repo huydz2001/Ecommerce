@@ -10,7 +10,7 @@ const COLLECTION_NAME = 'Keys'
 var keyTokenSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
-        require: true,
+        required: true,
         ref: 'Shop'
     },
     publicKey: {
