@@ -43,8 +43,6 @@ class KeyTokenService {
         return await keytokenModel.deleteOne({ user: new mongoose.Types.ObjectId(userId) })
     }
 
-
-
 }
 
 module.exports = KeyTokenService

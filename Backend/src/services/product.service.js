@@ -3,6 +3,7 @@
 
 const { BadRequestError } = require('../core/error.response');
 const { product, clothing, electronic } = require('../models/product.model');
+const { insertInventory } = require('../models/repositories/inventory.repo');
 const { queryProduct, findAllDraftsForShop, findAllPublishForShop, publishProductByShop, unPublishProductByShop, searchProductByUser, findAllProducts, findProduct, updateProductById } = require('../models/repositories/product.repo');
 const { removeUndefineObject, updateNestedObjectParser } = require('../utils');
 
@@ -100,10 +101,21 @@ class Product {
 
     // create product
     async createProduct(product_id) {
-        return await product.create({
+        const newProduct = await product.create({
             ...this,
             _id: product_id
         })
+
+        // add product stock in inventory
+        if(newProduct){
+            await insertInventory({
+                productId: newProduct._id,
+                shopId: this.product_shop,
+                stock: this.product_quantity
+            })
+        }
+
+        return newProduct
     }
 
     // update product
