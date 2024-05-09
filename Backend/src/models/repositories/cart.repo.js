@@ -1,5 +1,6 @@
 'use strict'
 
+const { convertToObjectIdMongoDb } = require("../../utils")
 const cart = require("../cart.model")
 const { product } = require("../product.model")
 
@@ -35,8 +36,6 @@ const checkExistProductInCart = async ({ userId, product }) => {
     }
 
     return productExists
-
-
 }
 
 const updateUserCartQuantity = async ({ userId, product }) => {
@@ -73,9 +72,17 @@ const deleteUserCart = async ({ userId, productId }) => {
     return deleted
 }
 
+const findCartByCartId = async (cartId) => {
+    return await cart.findOne({
+        _id: convertToObjectIdMongoDb(cartId),
+        cart_state: 'active'
+    }).lean()
+}
+
 module.exports = {
     createUserCart,
     updateUserCartQuantity,
     deleteUserCart,
-    checkExistProductInCart
+    checkExistProductInCart,
+    findCartByCartId
 }
