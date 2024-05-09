@@ -3,10 +3,20 @@
 const redis = require('redis')
 const { promisify } = require('util')
 const { reservationInventory } = require('../models/repositories/inventory.repo')
+const { client } = require('../loggers/discord.log')
 const redisClient = redis.createClient()
 
-const pexpire = promisify(redisClient.pExpire).bind(redisClient)
-const setnxAsync = promisify(redisClient.setNX).bind(redisClient)
+
+redisClient.ping((err, result) => {
+    if (err) {
+        console.error('Error:', err);
+    } else {
+        console.log('Connected to Redis');
+    }
+})
+
+const pexpire = promisify(redisClient.pexpire).bind(redisClient)
+const setnxAsync = promisify(redisClient.setnx).bind(redisClient)
 
 
 const acquireLock = async (productId, quantity, cartId) => {
@@ -35,7 +45,7 @@ const acquireLock = async (productId, quantity, cartId) => {
     }
 }
 
-const releaseLock = async keyLoack => {
+const releaseLock = async keyLock => {
     const delAsyncKey = promisify(redisClient.del).bind(redisClient)
     return await delAsyncKey(keyLock)
 }
