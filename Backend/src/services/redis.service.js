@@ -11,7 +11,7 @@ redisClient.ping((err, result) => {
     if (err) {
         console.error('Error:', err);
     } else {
-        console.log('Connected to Redis');
+        console.log('Connected Redis Success');
     }
 })
 
