@@ -6,6 +6,7 @@ const { product, clothing, electronic } = require('../models/product.model');
 const { insertInventory } = require('../models/repositories/inventory.repo');
 const { queryProduct, findAllDraftsForShop, findAllPublishForShop, publishProductByShop, unPublishProductByShop, searchProductByUser, findAllProducts, findProduct, updateProductById } = require('../models/repositories/product.repo');
 const { removeUndefineObject, updateNestedObjectParser } = require('../utils');
+const { pushNotiToSystem } = require('./notification.service');
 
 
 class ProductFactory {
@@ -107,13 +108,25 @@ class Product {
         })
 
         // add product stock in inventory
-        if(newProduct){
+        if (newProduct) {
             await insertInventory({
                 productId: newProduct._id,
                 shopId: this.product_shop,
                 stock: this.product_quantity
             })
         }
+
+        // add system notification
+        pushNotiToSystem({
+            type: 'SHOP-001',
+            receivedId: 1,
+            senderId: this.product_shop,
+            options: {
+                product_name: this.product_name,
+                shop_name: this.product_shop
+            }
+        }).then(res => console.log(res))
+            .catch(console.error)
 
         return newProduct
     }
@@ -149,10 +162,11 @@ class Clothing extends Product {
 
         // check place update
         if (objectParams.product_attributes) {
-            await updateProductById({ 
-                productId, 
-                bodyUpdate: updateNestedObjectParser(objectParams.product_attributes), 
-                model: clothing })
+            await updateProductById({
+                productId,
+                bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+                model: clothing
+            })
         }
 
         const updateProduct = await super.updateProduct(productId, updateNestedObjectParser(objectParams))
@@ -185,10 +199,11 @@ class Electronics extends Product {
 
         // check place update
         if (objectParams.product_attributes) {
-            await updateProductById({ 
-                productId, 
-                bodyUpdate: updateNestedObjectParser(objectParams.product_attributes), 
-                model: electronic })
+            await updateProductById({
+                productId,
+                bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+                model: electronic
+            })
         }
 
         const updateProduct = await super.updateProduct(productId, updateNestedObjectParser(objectParams))
