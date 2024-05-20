@@ -54,6 +54,7 @@ services:
       - mysql_data:/var/lib/mysql-slave
     networks:
       - my_network
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASS} 
       MYSQL_USER: ${MYSQL_USER}
@@ -66,6 +67,7 @@ services:
       - 8811:3306
     networks:
       - my_network
+    restart: always
     volumes:
       - mysql_data:/var/lib/mysql-master
     environment:
